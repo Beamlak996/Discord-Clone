@@ -1,9 +1,9 @@
 import React from 'react'
 
-const ServerPage = () => {
+const ServerIdPage = () => {
   return (
-    <div>ServerPage</div>
+    <div>ServerIdPage</div>
   )
 }
 
-export default ServerPage
+export default ServerIdPage
