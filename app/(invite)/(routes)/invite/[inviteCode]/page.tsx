@@ -1,0 +1,52 @@
+import { currentProfile } from "@/lib/current-profile"
+import { prisma } from "@/lib/db"
+import { redirectToSignIn } from "@clerk/nextjs"
+import { MemberRole } from "@prisma/client"
+import { redirect } from "next/navigation"
+
+type InviteCodePageProps = {
+    params: {
+        inviteCode: string
+    }
+}
+
+const InviteCodePage = async ({params}: InviteCodePageProps) => {
+  const profile = await currentProfile()
+
+  if(!profile) return redirectToSignIn()
+  if(!params.inviteCode) return redirect("/")
+
+  const existingServer = await prisma.server.findFirst({
+    where: {
+      inviteCode: params.inviteCode,
+      members: {
+        some: {
+          profileId: profile.id,
+        },
+      },
+    },
+  });
+
+  if(existingServer) return redirect(`/servers/${existingServer.id}`)
+
+   const server = await prisma.server.update({
+     where: {
+       inviteCode: params.inviteCode,
+     },
+     data: {
+       members: {
+         create: [
+           {
+             profileId: profile.id,
+           },
+         ],
+       },
+     },
+   });
+
+  if(server) redirect(`/servers/${server.id}`)
+
+  return null
+}
+
+export default InviteCodePage
